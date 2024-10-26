@@ -2,7 +2,8 @@ from collections import deque
 from decimal import Decimal
 from typing import Any, List
 
-import numpy as np
+import numpy as np 
+import itertools
 
 from dojo.actions.base_action import BaseAction
 from dojo.actions.uniswapV3 import UniswapV3Trade
@@ -40,14 +41,24 @@ class MovingAveragePolicy(BasePolicy):  # type: ignore
         self.long_window = deque(maxlen=self._long_window_len)
         self.short_window = deque(maxlen=self._short_window_len)
 
+    def exponential_moving_average(self, prices, N, period=3):
+        ema = np.zeros(len(prices))
+        l = list(itertools.islice(prices, 0, period))
+        sma = sum(l)/len(l)
+        ema[period-1] = sma
+        w = 2/(N+1)
+        for i in range(period, len(prices)):
+            ema[i] = prices[i]*w + ema[i-1]*(1-w)
+        return ema[-1]
+        
+
     def _x_to_y_indicated(self, pool_tokens: tuple[str, str]) -> bool:
-        """If the short window crosses above the long window, convert asset y to asset
-4      x.
+        """If the short window crosses above the long window, convert asset y to asset 4      x.
 
         Only do so if there are tokens left to trade.
         """
         return bool(
-            np.mean(self.short_window) > np.mean(self.long_window)
+            self.exponential_moving_average(self.short_window, self._short_window_len) > self.exponential_moving_average(self.long_window, self._long_window_len)
             and self.agent.quantity(pool_tokens[1]) > 0
         )
 
@@ -58,7 +69,7 @@ class MovingAveragePolicy(BasePolicy):  # type: ignore
         Only do so if there are tokens left to trade.
         """
         return bool(
-            np.mean(self.short_window) < np.mean(self.long_window)
+            self.exponential_moving_average(self.short_window, self._short_window_len) < self.exponential_moving_average(self.long_window, self._long_window_len)
             and self.agent.quantity(pool_tokens[0]) > 0
         )
 
