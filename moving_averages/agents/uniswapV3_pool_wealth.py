@@ -28,6 +28,7 @@ class UniswapV3PoolWealthAgent(UniswapV3Agent):
 
         # wealth expressed as token0 of the pool
         wealth = Decimal(0)
+         
         for token, quantity in lp_portfolio.items():
             wealth += quantity * obs.price(token=token, unit=pool_tokens[0], pool=pool)
         for token, quantity in wallet_portfolio.items():

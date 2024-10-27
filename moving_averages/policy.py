@@ -39,7 +39,7 @@ class MovingAveragePolicy(BasePolicy):  # type: ignore
         self.long_window = deque(maxlen=self._long_window_len)
         self.short_window = deque(maxlen=self._short_window_len)
 
-    def exponential_moving_average(self, prices, N, period=10):
+    def exponential_moving_average(self, prices, N, period=30):
         ema = np.zeros(len(prices))
         l = list(itertools.islice(prices, 0, period))
         sma = sum(l)/len(l)
@@ -81,6 +81,10 @@ class MovingAveragePolicy(BasePolicy):  # type: ignore
         obs.add_signal(
             "LongShortDiff",
             float(np.mean(self.short_window) - np.mean(self.long_window)),
+        )
+        obs.add_signal(
+            "portfolio_value",
+            float(self.agent.quantity(pool_tokens[1])),
         )
 
         # Only start trading when the windows are full

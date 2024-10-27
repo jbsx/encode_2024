@@ -29,7 +29,7 @@ def main(
     **kwargs: dict[str, Any],
 ) -> None:
     pools = ["USDC/WETH-0.05"]
-    start_time = dateparser.parse("2022-10-21 00:00:00 UTC")
+    start_time = dateparser.parse("2024-04-28 00:00:00 UTC")
     end_time = start_time + run_length
 
     # Agents
@@ -41,16 +41,12 @@ def main(
         },
         name="MAvg_Agent",
     )
-    lp_agent = UniswapV3PoolWealthAgent(
-        initial_portfolio={"USDC": Decimal(10_000), "WETH": Decimal(1)},
-        name="LP_Agent",
-    )
 
     # Simulation environment (Uniswap V3)
     env = UniswapV3Env(
         chain=Chain.ETHEREUM,
         date_range=(start_time, end_time),
-        agents=[mavg_agent, lp_agent],
+        agents=[mavg_agent],
         pools=pools,
         backend_type="forked",  # change to local for better speed
         market_impact="replay",
@@ -58,17 +54,13 @@ def main(
 
     # Policies
     mavg_policy = MovingAveragePolicy(
-        agent=mavg_agent, pool="USDC/WETH-0.05", short_window=5, long_window=10
-    )
-
-    passive_lp_policy = PassiveConcentratedLP(
-        agent=lp_agent, lower_price_bound=0.95, upper_price_bound=1.05
+        agent=mavg_agent, pool="USDC/WETH-0.05", short_window=100, long_window=500
     )
 
     # SNIPPET 1 START
     backtest_run(
         env=env,
-        policies=[mavg_policy, passive_lp_policy],
+        policies=[mavg_policy],
         dashboard_server_port=dashboard_server_port,
         output_file="moving_averages.db",
         auto_close=auto_close,
@@ -84,5 +76,5 @@ if __name__ == "__main__":
         dashboard_server_port=8768,
         simulation_status_bar=True,
         auto_close=False,
-        run_length=timedelta(hours=4),
+        run_length=timedelta(hours=20),
     )
