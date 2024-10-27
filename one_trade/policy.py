@@ -20,16 +20,38 @@ class OneTradePolicy(BasePolicy):  # type: ignore
         self.one_trade = True
 
     def predict(self, obs: UniswapV3Observation) -> List[BaseAction]:  # type: ignore
-        # Make first trade
+        pool = obs.pools[0]
+        #Trade only once
         if self.one_trade:
             self.one_trade = False
-            pool = obs.pools[0]
-            return [
-                UniswapV3Trade(
-                    agent=self.agent,
-                    pool=pool,
-                    quantities=(Decimal(0), Decimal(1)),
-                )
-            ]
+            quantities = [self.agent.quantity(obs.pool_tokens(pool)[0]), self.agent.quantity(obs.pool_tokens(pool)[1])]
+            if self.agent.quantity(obs.pool_tokens(pool)[1]) != 0:
+                #If you own WETH, trade all WETH for USDC
+                return [
+                    UniswapV3Trade(
+                        agent=self.agent,
+                        pool=pool,
+                        quantities=(Decimal(0), max(quantities)),
+                    )
+                ]
+            else:
+                #If you do not own WETH, trade 1 USDC for WETH
+                return [
+                    UniswapV3Trade(
+                        agent=self.agent,
+                        pool=pool,
+                        quantities=(Decimal(1), Decimal(0)),
+                    )
+                ]
         else:
-            return []
+            #If you own WETH, trade all WETH for USDC
+            if self.agent.quantity(obs.pool_tokens(pool)[1]) != 0:
+                return [
+                    UniswapV3Trade(
+                        agent=self.agent,
+                        pool=pool,
+                        quantities=(Decimal(0), Decimal(self.agent.quantity("WETH"))),
+                    )
+                ]
+            else:
+                return []

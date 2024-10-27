@@ -32,7 +32,6 @@ def main(
     # Agents
     one_agent = UniswapV3PoolWealthAgent(
         initial_portfolio={
-            "ETH": Decimal(100),
             "USDC": Decimal(10000),
             "WETH": Decimal(0),
         },
