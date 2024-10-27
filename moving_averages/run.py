@@ -29,7 +29,7 @@ def main(
     **kwargs: dict[str, Any],
 ) -> None:
     pools = ["USDC/WETH-0.05"]
-    start_time = dateparser.parse("2021-06-20 00:00:00 UTC")
+    start_time = dateparser.parse("2022-10-21 00:00:00 UTC")
     end_time = start_time + run_length
 
     # Agents
@@ -58,7 +58,7 @@ def main(
 
     # Policies
     mavg_policy = MovingAveragePolicy(
-        agent=mavg_agent, pool="USDC/WETH-0.05", short_window=25, long_window=100
+        agent=mavg_agent, pool="USDC/WETH-0.05", short_window=5, long_window=10
     )
 
     passive_lp_policy = PassiveConcentratedLP(

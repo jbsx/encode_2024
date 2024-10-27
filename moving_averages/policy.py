@@ -12,9 +12,7 @@ from dojo.environments.uniswapV3 import UniswapV3Observation
 from dojo.policies import BasePolicy
 
 
-def exp_mov_avg():
-    return
-
+    
 # SNIPPET 1 START
 class MovingAveragePolicy(BasePolicy):  # type: ignore
     """Moving average trading policy for a UniswapV3Env with a single pool.
@@ -41,7 +39,7 @@ class MovingAveragePolicy(BasePolicy):  # type: ignore
         self.long_window = deque(maxlen=self._long_window_len)
         self.short_window = deque(maxlen=self._short_window_len)
 
-    def exponential_moving_average(self, prices, N, period=3):
+    def exponential_moving_average(self, prices, N, period=10):
         ema = np.zeros(len(prices))
         l = list(itertools.islice(prices, 0, period))
         sma = sum(l)/len(l)
@@ -94,7 +92,7 @@ class MovingAveragePolicy(BasePolicy):  # type: ignore
             return []
         obs.add_signal("Locked", float(False))
 
-        # Sell if price lower than equal to stop loss
+        # Sell if price lower than or equal to stop loss
         if price <= self.stop_loss:
             x_quantity = self.agent.quantity(pool_tokens[0])
             self._clear_windows()
@@ -129,7 +127,7 @@ class MovingAveragePolicy(BasePolicy):  # type: ignore
                 UniswapV3Trade(
                     agent=self.agent,
                     pool=self.pool,
-                    quantities=(x_quantity // 3, Decimal(0)),
+                    quantities=(x_quantity, Decimal(0)),
                 )
             ]
         return []
