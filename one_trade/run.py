@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 from agents.uniswapV3_pool_wealth import UniswapV3PoolWealthAgent
 from dateutil import parser as dateparser
-from policy import ArbitragePolicy
+from policy import OneTradePolicy
 
 from dojo.common.constants import Chain
 from dojo.environments import UniswapV3Env
@@ -25,42 +25,42 @@ def main(
     run_length: timedelta = timedelta(minutes=10),
     **kwargs: dict[str, Any]
 ) -> None:
-    pools = ["USDC/WETH-0.05", "USDC/WETH-0.3"]
+    pools = ["USDC/WETH-0.05"]
     start_time = dateparser.parse("2021-06-21 00:00:00 UTC")
     end_time = start_time + run_length
 
     # Agents
-    arb_agent = UniswapV3PoolWealthAgent(
+    one_agent = UniswapV3PoolWealthAgent(
         initial_portfolio={
             "ETH": Decimal(100),
             "USDC": Decimal(10000),
             "WETH": Decimal(0),
         },
-        name="Arbitrage_Agent",
+        name="OneTrade_Agent",
     )
 
     # Simulation environment (Uniswap V3)
     env = UniswapV3Env(
         chain=Chain.ETHEREUM,
         date_range=(start_time, end_time),
-        agents=[arb_agent],
+        agents=[one_agent],
         pools=pools,
         backend_type="forked",
         market_impact="replay",
     )
 
     # Policies
-    arb_policy = ArbitragePolicy(agent=arb_agent)
+    ontrd_policy = OneTradePolicy(agent=one_agent)
 
     backtest_run(
         env=env,
-        policies=[arb_policy],
+        policies=[ontrd_policy],
         dashboard_server_port=dashboard_server_port,
-        output_file="arbitrage.db",
+        output_file="one_trade.db",
         auto_close=auto_close,
         simulation_status_bar=simulation_status_bar,
-        simulation_title="Arbitrage",
-        simulation_description="Arbitraging between 2 uniswap pools that trade the same tokens.",
+        simulation_title="OneTrade",
+        simulation_description="Trading Once",
     )
 
 
